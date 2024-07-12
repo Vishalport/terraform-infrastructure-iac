@@ -1,0 +1,40 @@
+Tyoe of resource in use.
+Name               Location      ResourceGroup
+-----------------  ------------  ---------------
+window01_991c6bd0  centralindia  Trial
+window01_453d8198  centralindia  Trial
+ubuntu01           centralindia  Trial
+Name               ResourceGroup    Location      Zones
+-----------------  ---------------  ------------  -------
+ubuntu01           TRIAL            centralindia  1
+window01_453d8198  TRIAL            centralindia
+window01_991c6bd0  TRIAL            centralindia
+Name      Location      ProvisioningState    VmId                                  PowerState    PublicIps      Fqdns    PrivateIps    MacAddresses       ResourceGroup
+--------  ------------  -------------------  ------------------------------------  ------------  -------------  -------  ------------  -----------------  ---------------
+ubuntu01  centralindia  Succeeded            8bb96dd1-55f5-4f80-82cf-24d28f16a61f  VM running    20.244.84.241           10.0.0.6      60-45-BD-AC-16-97  TRIAL
+Name                                                         ResourceGroup     Location      Type                                       Status
+-----------------------------------------------------------  ----------------  ------------  -----------------------------------------  --------
+basicNsgTrial-vnet-nic01                                     Trial             centralindia  Microsoft.Network/networkSecurityGroups
+Trial-vnet                                                   Trial             centralindia  Microsoft.Network/virtualNetworks
+window01                                                     Trial             centralindia  Microsoft.Compute/virtualMachineScaleSets
+NetworkWatcher_centralindia                                  NetworkWatcherRG  centralindia  Microsoft.Network/networkWatchers
+window01_991c6bd0                                            Trial             centralindia  Microsoft.Compute/virtualMachines
+window01_453d8198                                            Trial             centralindia  Microsoft.Compute/virtualMachines
+window01_991c6bd0_OsDisk_1_ed092ad49b5f4e679fa6a0a7c3bd2cb0  TRIAL             centralindia  Microsoft.Compute/disks
+window01_453d8198_OsDisk_1_7b0ea8e85bea4378a43ba99386ec34ed  TRIAL             centralindia  Microsoft.Compute/disks
+publicIp-Trial-vnet-nic01-3012a7e9                           Trial             centralindia  Microsoft.Network/publicIPAddresses
+publicIp-Trial-vnet-nic01-9142dfbb                           Trial             centralindia  Microsoft.Network/publicIPAddresses
+Trial-vnet-nic01-3012a7e9                                    Trial             centralindia  Microsoft.Network/networkInterfaces
+Trial-vnet-nic01-9142dfbb                                    Trial             centralindia  Microsoft.Network/networkInterfaces
+window01autoscale                                            Trial             centralindia  Microsoft.Insights/autoscalesettings
+ubuntu01_key                                                 Trial             centralindia  Microsoft.Compute/sshPublicKeys
+ubuntu01-nsg                                                 Trial             centralindia  Microsoft.Network/networkSecurityGroups
+ubuntu01-ip                                                  Trial             centralindia  Microsoft.Network/publicIPAddresses
+ubuntu01480_z1                                               Trial             centralindia  Microsoft.Network/networkInterfaces
+ubuntu01                                                     Trial             centralindia  Microsoft.Compute/virtualMachines
+ubuntu01_disk1_a6b91e7ff68a4130add817a6f83b57b0              TRIAL             centralindia  Microsoft.Compute/disks
+Name               Location      ResourceGroup
+-----------------  ------------  ---------------
+window01_991c6bd0  centralindia  Trial
+window01_453d8198  centralindia  Trial
+ubuntu01           centralindia  Trial

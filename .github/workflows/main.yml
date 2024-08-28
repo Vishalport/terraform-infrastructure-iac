@@ -21,9 +21,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up Kubernetes CLI
-      uses: azure/setup-kubectl@v1
-      with:
-        version: '1.24.0'
+      run: |
+        curl -LO "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
 
     - name: Configure AWS CLI
       uses: aws-actions/configure-aws-credentials@v2

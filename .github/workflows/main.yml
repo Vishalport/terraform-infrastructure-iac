@@ -9,6 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout IaC Repository
+      uses: actions/checkout@v3
+      with:
+        repository: Vishalport/terraform-infrastructure-iac
+        token: ${{ secrets.GIT_TOKEN }}
+
+    - name: Set Up Kubernetes Config
+      run: |
+        echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
+        export KUBECONFIG=$(pwd)/kubeconfig
+
     - name: Write SSH private key
       run: |
         echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
@@ -25,26 +36,26 @@ jobs:
       run: |
         if [ "${{ github.event.client_payload.repo }}" == "nodejs-server" ]; then
           echo "Deploying Node.js server..."
-          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nodeserver | awk '{print \$2}' | sort -r | head -n 1")
+          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nodejs-server | awk '{print $2}' | sort -r | head -n 1")
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} << EOF
             cat <<EOL > kubernetes/deployment-nodejs.yaml
             apiVersion: apps/v1
             kind: Deployment
             metadata:
-              name: nodeserver
+              name: nodejs-server
             spec:
               replicas: 2
               selector:
                 matchLabels:
-                  app: nodeserver
+                  app: nodejs-server
               template:
                 metadata:
                   labels:
-                    app: nodeserver
+                    app: nodejs-server
                 spec:
                   containers:
-                  - name: nodeserver
-                    image: devopsport2165/nodeserver:\$LATEST_IMAGE
+                  - name: nodejs-server
+                    image: devopsport2165/nodejs-server:\$LATEST_IMAGE
                     ports:
                     - containerPort: 1950
             EOL
@@ -52,26 +63,26 @@ jobs:
           EOF
         elif [ "${{ github.event.client_payload.repo }}" == "nextjs-server" ]; then
           echo "Deploying Next.js server..."
-          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nextserver | awk '{print \$2}' | sort -r | head -n 1")
+          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nextjs-server | awk '{print $2}' | sort -r | head -n 1")
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} << EOF
             cat <<EOL > kubernetes/deployment-nextjs.yaml
             apiVersion: apps/v1
             kind: Deployment
             metadata:
-              name: nextserver
+              name: nextjs-server
             spec:
               replicas: 2
               selector:
                 matchLabels:
-                  app: nextserver
+                  app: nextjs-server
               template:
                 metadata:
                   labels:
-                    app: nextserver
+                    app: nextjs-server
                 spec:
                   containers:
-                  - name: nextserver
-                    image: devopsport2165/nextserver:\$LATEST_IMAGE
+                  - name: nextjs-server
+                    image: devopsport2165/nextjs-server:\$LATEST_IMAGE
                     ports:
                     - containerPort: 3000
             EOL

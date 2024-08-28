@@ -1,4 +1,4 @@
-name: Deploy Infrastructure
+name: Deploy to EKS
 
 on:
   workflow_dispatch:
@@ -17,43 +17,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout IaC repository
-        uses: actions/checkout@v3
+    - name: Checkout the IaC repository
+      uses: actions/checkout@v3
 
-      - name: Set up Kubernetes CLI
-        run: |
-          curl -LO "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
-          kubectl version --client
+    - name: Set up Kubernetes CLI
+      run: |
+        curl -LO "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
 
-      - name: Configure AWS CLI
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Validate AWS CLI
-        run: aws sts get-caller-identity
+    - name: Get EKS Cluster Credentials
+      run: |
+        aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-      - name: Get EKS Cluster Credentials
-        run: |
-          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
-
-      - name: Deploy to EKS
-        run: |
-          if [ "${{ github.event.inputs.deployment_type }}" == "nodejs-server" ]; then
-            echo "Deploying Node.js server..."
-            LATEST_IMAGE=$(aws ecr describe-images --repository-name nodejs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
-            kubectl set image deployment/nodejs-server nodejs-server=devopsport2165/nodejs-server:$LATEST_IMAGE
-            kubectl apply -f kubernetes/deployment-nodejs.yaml
-          elif [ "${{ github.event.inputs.deployment_type }}" == "nextjs-server" ]; then
-            echo "Deploying Next.js server..."
-            LATEST_IMAGE=$(aws ecr describe-images --repository-name nextjs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
-            kubectl set image deployment/nextjs-server nextjs-server=devopsport2165/nextjs-server:$LATEST_IMAGE
-            kubectl apply -f kubernetes/deployment-nextjs.yaml
-          else
-            echo "No valid repo specified. Exiting..."
-            exit 1
-          fi
+    - name: Deploy to EKS
+      run: |
+        if [ "${{ github.event.inputs.deployment_type }}" == "nodejs-server" ]; then
+          echo "Deploying Node.js server..."
+          LATEST_IMAGE=$(aws ecr describe-images --repository-name nodejs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl set image deployment/nodejs-server nodejs-server=devopsport2165/nodejs-server:$LATEST_IMAGE
+          kubectl apply -f kubernetes/deployment-nodejs.yaml
+        elif [ "${{ github.event.inputs.deployment_type }}" == "nextjs-server" ]; then
+          echo "Deploying Next.js server..."
+          LATEST_IMAGE=$(aws ecr describe-images --repository-name nextjs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl set image deployment/nextjs-server nextjs-server=devopsport2165/nextjs-server:$LATEST_IMAGE
+          kubectl apply -f kubernetes/deployment-nextjs.yaml
+        else
+          echo "No valid repo specified. Exiting..."
+          exit 1
+        fi

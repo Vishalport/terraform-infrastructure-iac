@@ -1,8 +1,16 @@
 name: Deploy to EKS
 
 on:
-  repository_dispatch:
-    types: [deploy_to_eks]
+  workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: 'Choose which server to deploy'
+        required: true
+        default: 'nodejs-server'
+        type: choice
+        options:
+          - nodejs-server
+          - nextjs-server
 
 jobs:
   deploy:
@@ -30,13 +38,15 @@ jobs:
 
     - name: Deploy to EKS
       run: |
-        if [ "${{ github.event.client_payload.repo }}" == "nodejs-server" ]; then
+        if [ "${{ github.event.inputs.deployment_type }}" == "nodejs-server" ]; then
           echo "Deploying Node.js server..."
           LATEST_IMAGE=$(aws ecr describe-images --repository-name nodejs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl set image deployment/nodejs-server nodejs-server=devopsport2165/nodejs-server:$LATEST_IMAGE
           kubectl apply -f kubernetes/deployment-nodejs.yaml
-        elif [ "${{ github.event.client_payload.repo }}" == "nextjs-server" ]; then
+        elif [ "${{ github.event.inputs.deployment_type }}" == "nextjs-server" ]; then
           echo "Deploying Next.js server..."
           LATEST_IMAGE=$(aws ecr describe-images --repository-name nextjs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl set image deployment/nextjs-server nextjs-server=devopsport2165/nextjs-server:$LATEST_IMAGE
           kubectl apply -f kubernetes/deployment-nextjs.yaml
         else
           echo "No valid repo specified. Exiting..."

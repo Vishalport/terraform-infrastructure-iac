@@ -1,22 +1,20 @@
 provider "aws" {
-  region = "us-east-1" # or your desired region
+  region = var.region
 }
 
-# Create the EKS Cluster
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = "my-cluster"
+  cluster_name    = var.cluster_name
   cluster_version = "1.21"
-  subnets         = ["subnet-xxxxxxxx", "subnet-xxxxxxxx"]
-  vpc_id          = "vpc-xxxxxxxx"
+  subnets         = var.subnets
+  vpc_id          = var.vpc_id
 
   node_groups = {
     eks_nodes = {
       desired_capacity = 2
       max_capacity     = 3
       min_capacity     = 1
-
-      instance_type = "t3.medium"
+      instance_type    = var.instance_type
     }
   }
 
@@ -26,9 +24,9 @@ module "eks" {
   }
 }
 
-# Output the cluster config
+# Output EKS Cluster Information
 output "kubeconfig" {
-  value = module.eks.kubeconfig
+  value     = module.eks.kubeconfig
   sensitive = true
 }
 

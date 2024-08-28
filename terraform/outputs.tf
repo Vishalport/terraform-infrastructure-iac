@@ -1,5 +1,5 @@
 output "kubeconfig" {
-  value = module.eks.kubeconfig
+  value     = module.eks.kubeconfig
   sensitive = true
 }
 

@@ -1,19 +1,24 @@
 variable "region" {
-  default = "us-east-1"
+  description = "AWS region to deploy the resources"
+  default     = "us-east-1"
 }
 
 variable "cluster_name" {
-  default = "my-cluster"
+  description = "Name of the EKS cluster"
+  default     = "my-cluster"
 }
 
 variable "vpc_id" {
-  type = string
+  description = "The VPC ID where the EKS cluster will be deployed"
+  type        = string
 }
 
 variable "subnets" {
-  type = list(string)
+  description = "List of subnet IDs for the EKS cluster"
+  type        = list(string)
 }
 
 variable "instance_type" {
-  default = "t3.medium"
+  description = "Instance type for the EKS node group"
+  default     = "t3.medium"
 }

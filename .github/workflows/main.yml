@@ -9,85 +9,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout IaC Repository
+    - name: Checkout the IaC repository
       uses: actions/checkout@v3
+
+    - name: Set up Kubernetes CLI
+      uses: azure/setup-kubectl@v1
       with:
-        repository: Vishalport/terraform-infrastructure-iac
-        token: ${{ secrets.GIT_TOKEN }}
+        version: '1.24.0'
 
-    - name: Set Up Kubernetes Config
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Get EKS Cluster Credentials
       run: |
-        echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
-        export KUBECONFIG=$(pwd)/kubeconfig
+        aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-    - name: Write SSH private key
-      run: |
-        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
-        chmod 600 private_key.pem
-
-    - name: Configure SSH
-      run: |
-        mkdir -p ~/.ssh
-        cp private_key.pem ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.EC2_PUBLIC_ADDRESS }} >> ~/.ssh/known_hosts
-
-    - name: Deploy Based on Image Type
+    - name: Deploy to EKS
       run: |
         if [ "${{ github.event.client_payload.repo }}" == "nodejs-server" ]; then
           echo "Deploying Node.js server..."
-          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nodejs-server | awk '{print $2}' | sort -r | head -n 1")
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} << EOF
-            cat <<EOL > kubernetes/deployment-nodejs.yaml
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              name: nodejs-server
-            spec:
-              replicas: 2
-              selector:
-                matchLabels:
-                  app: nodejs-server
-              template:
-                metadata:
-                  labels:
-                    app: nodejs-server
-                spec:
-                  containers:
-                  - name: nodejs-server
-                    image: devopsport2165/nodejs-server:\$LATEST_IMAGE
-                    ports:
-                    - containerPort: 1950
-            EOL
-            kubectl apply -f kubernetes/deployment-nodejs.yaml
-          EOF
+          LATEST_IMAGE=$(aws ecr describe-images --repository-name nodejs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl apply -f kubernetes/deployment-nodejs.yaml
         elif [ "${{ github.event.client_payload.repo }}" == "nextjs-server" ]; then
           echo "Deploying Next.js server..."
-          LATEST_IMAGE=$(ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} "sudo docker images | grep nextjs-server | awk '{print $2}' | sort -r | head -n 1")
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_ADDRESS }} << EOF
-            cat <<EOL > kubernetes/deployment-nextjs.yaml
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              name: nextjs-server
-            spec:
-              replicas: 2
-              selector:
-                matchLabels:
-                  app: nextjs-server
-              template:
-                metadata:
-                  labels:
-                    app: nextjs-server
-                spec:
-                  containers:
-                  - name: nextjs-server
-                    image: devopsport2165/nextjs-server:\$LATEST_IMAGE
-                    ports:
-                    - containerPort: 3000
-            EOL
-            kubectl apply -f kubernetes/deployment-nextjs.yaml
-          EOF
+          LATEST_IMAGE=$(aws ecr describe-images --repository-name nextjs-server --query 'images | sort_by(@, &imagePushedAt) | [-1].imageTags[0]' --output text)
+          kubectl apply -f kubernetes/deployment-nextjs.yaml
         else
           echo "No valid repo specified. Exiting..."
           exit 1

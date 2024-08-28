@@ -41,7 +41,7 @@ jobs:
 
     - name: Get EKS Cluster Credentials
       run: |
-        aws eks update-kubeconfig --name nodeserver_cluster --region us-east-1
+        aws eks update-kubeconfig --name nodeserver_cluster --region ${{ secrets.AWS_REGION }}
 
     - name: Deploy to EKS
       run: |

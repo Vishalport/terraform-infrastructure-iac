@@ -36,7 +36,7 @@ jobs:
 
     - name: Get EKS Cluster Credentials
       run: |
-        aws eks update-kubeconfig --name "nodeserver_cluster"
+        aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
     - name: Deploy to EKS
       run: |
